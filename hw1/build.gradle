@@ -1,0 +1,19 @@
+apply plugin: 'java'
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compile 'org.slf4j:slf4j-api:1.7.21',
+            'org.apache.hadoop:hadoop-mapreduce-client-core:2.7.3'
+    compile('org.apache.hadoop:hadoop-client:2.7.3') {
+        exclude module: 'org.mockito'
+    }
+
+
+    testCompile 'junit:junit:4.12',
+                'org.mockito:mockito-all:1.9.5',
+                'org.apache.mrunit:mrunit:1.1.0:hadoop2'
+
+}

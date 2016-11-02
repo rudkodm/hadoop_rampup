@@ -1,0 +1,1 @@
+# Hadoop image for training

@@ -1,6 +1,8 @@
 FROM ubuntu:14.04
-
 MAINTAINER rudkodm <rudko.d.v@gmail.com>
+
+# Args:
+ARG CONFIGS
 
 WORKDIR /root
 
@@ -28,7 +30,8 @@ ENV PATH=$PATH:$HADOOP_HOME/bin:$HADOOP_HOME/sbin
 RUN ssh-keygen -t rsa -f ~/.ssh/id_rsa -P '' && \
     cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
 
-COPY config/* /tmp/
+
+COPY ${CONFIGS}/* /tmp/
 
 RUN mv /tmp/ssh_config          ~/.ssh/config && \
     mv /tmp/sshd_config         /etc/ssh && \

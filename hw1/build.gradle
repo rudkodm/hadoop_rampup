@@ -1,4 +1,12 @@
+buildscript {
+    repositories { mavenCentral() }
+    dependencies {
+        classpath 'com.aestasit.infrastructure.sshoogr:sshoogr-gradle:0.9.18'
+    }
+}
+
 apply plugin: 'java'
+apply plugin: 'secureShell'
 
 repositories {
     jcenter()
@@ -16,4 +24,31 @@ dependencies {
                 'org.mockito:mockito-all:1.9.5',
                 'org.apache.mrunit:mrunit:1.1.0:hadoop2'
 
+}
+
+sshOptions {
+    defaultHost = 'localhost'
+    defaultUser = 'root'
+    defaultPassword = 'root'
+    defaultPort = 2222
+    trustUnknownHosts = true
+    execOptions.with {
+        showOutput = true
+    }
+    scpOptions.with {
+        verbose = true
+        showProgress = true
+    }
+}
+
+task copyDataToCluster << {
+    remoteSession {
+        scp "$projectDir/belarus.txt", '/tmp/belarus.txt'
+        scp "$projectDir/napoleon-orda.txt", '/tmp/napoleon-orda.txt'
+    }
+}
+task copyDataToHdfs << {
+    remoteSession {
+        exec 'rm -rf /tmp/*'
+    }
 }

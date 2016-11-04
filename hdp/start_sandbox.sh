@@ -1,3 +1,4 @@
+#!/bin/bash
 docker run \
 -v hadoop:/hadoop \
 --name sandbox --hostname "sandbox.hortonworks.com" \

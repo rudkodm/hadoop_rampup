@@ -1,27 +1,28 @@
 package by.rudko.hru;
 
 import org.apache.hadoop.io.IntWritable;
-import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mrunit.types.Pair;
-import org.junit.Before;
-import org.junit.Test;
 import org.apache.hadoop.mrunit.mapreduce.MapDriver;
 import org.apache.hadoop.mrunit.mapreduce.MapReduceDriver;
 import org.apache.hadoop.mrunit.mapreduce.ReduceDriver;
+import org.apache.hadoop.mrunit.types.Pair;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class LongestWordTest {
-    private MapDriver<Object, Text, IntWritable, Text> mapDriver;
+    private MapDriver<LongWritable, Text, IntWritable, Text> mapDriver;
     private ReduceDriver<IntWritable, Text, IntWritable, Text> reduceDriver;
     private MapReduceDriver mapReduceDriver;
 
     @Before
     public void setUp() throws Exception {
-        LongestWordMR.LongestWordMapper mapper = new LongestWordMR.LongestWordMapper();
-        LongestWordMR.LongestWordReducer reducer = new LongestWordMR.LongestWordReducer();
+        LongestWordMapper mapper = new LongestWordMapper();
+        LongestWordReducer reducer = new LongestWordReducer();
 
         mapDriver = MapDriver.newMapDriver(mapper);
         reduceDriver = ReduceDriver.newReduceDriver(reducer);
@@ -70,7 +71,6 @@ public class LongestWordTest {
 
 
 
-
     @Test
     public void reducer_forOneWord_shouldReturnIt() throws Exception {
         reduceDriver.withInput(reducerInputPair(4, "word"));
@@ -103,8 +103,8 @@ public class LongestWordTest {
     }
 
 
-    private NullWritable something() {
-      return NullWritable.get();
+    private LongWritable something() {
+      return new LongWritable(0);
     };
 
     private Pair<IntWritable, List<Text>> reducerInputPair(int i, String...str) {

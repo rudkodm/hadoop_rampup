@@ -1,0 +1,102 @@
+buildscript {
+    repositories { mavenCentral() }
+    dependencies {
+        classpath 'com.aestasit.infrastructure.sshoogr:sshoogr-gradle:0.9.18'
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'secureShell'
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+sshOptions {
+    defaultHost = 'localhost'
+    defaultUser = 'root'
+    defaultPassword = 'root'
+    defaultPort = 2222
+    trustUnknownHosts = true
+    execOptions.with {
+        showOutput = true
+    }
+    scpOptions.with {
+        verbose = true
+        showProgress = true
+    }
+}
+
+ext {
+    clusterPath = '/tmp/hw1'
+    hdfsPath = '/tmp/hw1'
+    hdfsInputPath = "$hdfsPath/in"
+    hadoopLibs = [
+            'org.apache.hadoop:hadoop-mapreduce-client-core:2.7.3',
+            'org.apache.hadoop:hadoop-client:2.7.3'
+    ]
+}
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compileOnly hadoopLibs
+
+    testCompile hadoopLibs,
+            'junit:junit:4.12',
+            'org.mockito:mockito-all:1.9.5',
+            'org.apache.mrunit:mrunit:1.1.0:hadoop2'
+
+}
+
+
+
+
+task cleanDataOnCluster << {
+    remoteSession {
+        exec(command: "rm -frd /tmp/hw1/", failOnError: false)
+    }
+}
+task copyDataToCluster(dependsOn: cleanDataOnCluster) << {
+    remoteSession {
+        exec "mkdir $clusterPath"
+        scp "data/belarus.txt", clusterPath
+        scp "data/napoleon-orda.txt", clusterPath
+    }
+}
+
+task cleanDataOnHdfs << {
+    remoteSession {
+        exec(command: "hdfs dfs -rm -r /tmp/hw1/", failOnError: false)
+    }
+}
+task copyDataToHdfs(dependsOn: [copyDataToCluster, cleanDataOnHdfs]) << {
+    remoteSession {
+        exec "hdfs dfs -mkdir -p $hdfsInputPath"
+        exec "hdfs dfs -copyFromLocal /tmp/hw1/belarus.txt $hdfsInputPath"
+        exec "hdfs dfs -copyFromLocal /tmp/hw1/napoleon-orda.txt $hdfsInputPath"
+    }
+}
+
+task copyJob(dependsOn: build) << {
+    remoteSession {
+        scp "$buildDir/libs/hw1.jar", clusterPath
+    }
+}
+task deploy(dependsOn: [copyDataToHdfs, copyJob]) << {
+    logger.info("Deploying data and application")
+}
+
+task executeOnFile1 << {
+    remoteSession {
+        exec "hadoop jar /tmp/hw1/hw1.jar by.rudko.hru.LongestWordMR $hdfsInputPath/belarus.txt $hdfsPath/out1"
+    }
+}
+task executeOnFile2 << {
+    remoteSession {
+        exec "hadoop jar /tmp/hw1/hw1.jar by.rudko.hru.LongestWordMR $hdfsInputPath/napoleon-orda.txt $hdfsPath/out2"
+    }
+}
+
+

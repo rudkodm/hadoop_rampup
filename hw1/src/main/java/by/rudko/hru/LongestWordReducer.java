@@ -1,6 +1,5 @@
 package by.rudko.hru;
 
-import static by.rudko.hru.utils.CloneWritableUtils.*;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -16,18 +15,21 @@ class LongestWordReducer extends Reducer<IntWritable, Text, IntWritable, Text> {
     private Iterable<Text> wordsWithMaxSize = Collections.emptyList();
 
     @Override
-    protected void reduce(IntWritable size, Iterable<Text> words, Context context) throws IOException, InterruptedException {
-        logger.info("Reducer IN: size: {} || maxSize: {}", size, maxSize);
-        if(maxSize.compareTo(size) <= 0) {
-            this.maxSize = cloneInt(size);
-            this.wordsWithMaxSize = cloneIter(words);
+    public void run(Context context) throws IOException, InterruptedException {
+        super.setup(context);
+        try {
+            if (context.nextKey()) reduce(context.getCurrentKey(), context.getValues(), context);
+            writeOutput(context); // First value is the largest
+        } finally {
+            cleanup(context);
         }
     }
 
     @Override
-    protected void cleanup(Context context) throws IOException, InterruptedException {
-        logger.info("CleanUp Reducer");
-        this.writeOutput(context);
+    protected void reduce(IntWritable size, Iterable<Text> words, Context context) throws IOException, InterruptedException {
+        logger.info("Reducer IN: size: {} || maxSize: {}", size, maxSize);
+        this.maxSize = size;
+        this.wordsWithMaxSize = words;
     }
 
     private void writeOutput(Context context) throws IOException, InterruptedException {

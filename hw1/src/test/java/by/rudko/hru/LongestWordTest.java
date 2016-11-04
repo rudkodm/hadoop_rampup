@@ -94,8 +94,8 @@ public class LongestWordTest {
     @Test
     public void reducer_forTwoInputs_shouldReturnBiggerOne() throws Exception {
         reduceDriver
-                .withInput(reducerInputPair(4, "word"))
-                .withInput(reducerInputPair(5, "wordA"));
+                .withInput(reducerInputPair(5, "wordA"))
+                .withInput(reducerInputPair(4, "word"));
 
         reduceDriver.withOutput(new IntWritable(5), new Text("wordA"));
 
